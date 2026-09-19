@@ -1,11 +1,120 @@
 import os
 import sys
+import json
 import time
+import uuid
+import hashlib
 import requests
+from datetime import datetime
 from os import system
 from time import sleep
 
 system("clear")
+
+USERS_FILE = "users.json"
+DEVICE_FILE = "device.id"
+
+
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+
+def load_users():
+    if not os.path.exists(USERS_FILE):
+        return []
+    try:
+        with open(USERS_FILE, "r") as f:
+            data = json.load(f)
+            return data.get("users", [])
+    except Exception:
+        return []
+
+
+def save_users(users):
+    with open(USERS_FILE, "w") as f:
+        json.dump({"users": users}, f, indent=4)
+
+
+def get_device_id():
+    if not os.path.exists(DEVICE_FILE):
+        dev_id = str(uuid.uuid4())
+        with open(DEVICE_FILE, "w") as f:
+            f.write(dev_id)
+        return dev_id
+    with open(DEVICE_FILE, "r") as f:
+        return f.read().strip()
+
+
+def update_last_seen(username):
+    users = load_users()
+    for u in users:
+        if u.get("username") == username:
+            u["last_seen"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            break
+    save_users(users)
+
+
+def cek_login(username, password, device_id):
+    users = load_users()
+    hash_pw = hash_password(password)
+    for u in users:
+        if u.get("username") == username and u.get("password") == hash_pw:
+            if u.get("status", "aktif") != "aktif":
+                return False, "Akun kamu di-BAN", None
+
+            dev_tersimpan = u.get("device_id", "")
+
+            if not dev_tersimpan:
+                u["device_id"] = device_id
+                save_users(users)
+                return True, u.get("username"), None
+
+            if dev_tersimpan == device_id:
+                return True, u.get("username"), None
+
+            u["status"] = "banned"
+            save_users(users)
+            return False, "Terdeteksi login dari device lain. Akun di-BAN!", "banned"
+
+    return False, "Username atau password salah", None
+
+
+def login():
+    device_id = get_device_id()
+    while True:
+        system("clear")
+        print("\033[33m+==========================================+\033[0m")
+        print("\033[33m|            \033[1;97mLOGIN DULU\033[0m                    \033[33m|\033[0m")
+        print("\033[33m+==========================================+\033[0m")
+        print()
+        username = input("Username : ").strip()
+        password = input("Password : ").strip()
+
+        if not username or not password:
+            print("\033[91m[!] Username/password tidak boleh kosong\033[0m")
+            sleep(2)
+            continue
+
+        valid, pesan, alasan = cek_login(username, password, device_id)
+
+        if valid:
+            print()
+            print("\033[92m[OK] Login berhasil! Selamat datang, " + pesan + "\033[0m")
+            sleep(2)
+            system("clear")
+            return pesan
+        else:
+            print()
+            print("\033[91m[!] " + pesan + "\033[0m")
+            if alasan == "banned":
+                print("\033[91m[!] Program berhenti.\033[0m")
+                sleep(3)
+                sys.exit(1)
+            print("\033[91m[!] Coba lagi...\033[0m")
+            sleep(3)
+
+
+username_aktif = login()
 
 print("\033[33m[ Author                     : eja18 ]\033[0m")
 print("\033[33m[ Github                     :       ]\033[0m")
@@ -185,11 +294,6 @@ def baca_respons(r):
         if isinstance(data, dict) and data.get(key):
             pesan = data[key]
             break
-    if not pesan and isinstance(data, dict):
-        if "status" in data and isinstance(data["status"], dict):
-            pesan = data["status"].get("message")
-        if "data" in data and isinstance(data["data"], dict):
-            pesan = data["data"].get("message") or pesan
     detik = None
     if isinstance(data, dict):
         if "data" in data and isinstance(data["data"], dict):
@@ -197,8 +301,6 @@ def baca_respons(r):
                 detik = data["data"]["next_request_in_second"]
             if "retry_after" in data["data"]:
                 detik = data["data"]["retry_after"]
-        if "retry_after" in data:
-            detik = data["retry_after"]
     return pesan, detik
 
 
@@ -223,6 +325,8 @@ round_ke = 0
 
 while True:
     round_ke += 1
+    update_last_seen(username_aktif)
+
     teks_tengah = "ROUND " + str(round_ke)
     lebar = 42
     teks_tengah = teks_tengah.center(lebar)
