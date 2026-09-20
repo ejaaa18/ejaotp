@@ -1,0 +1,9 @@
+.ezraprivate/
+*.key
+device.id
+__pycache__/
+*.pyc
+*.pyo
+*.dist/
+*.build/
+*.bin
