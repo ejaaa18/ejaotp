@@ -1,4 +1,6 @@
 .ezraprivate/
+.eja_private/
+.private/
 *.key
 device.id
 __pycache__/
