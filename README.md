@@ -1,48 +1,79 @@
 # eja18-otp
 
-Script OTP otomatis untuk Termux.
+# Persyaratan
 
----
-
-## Persyaratan
-
+- Android 7+
 - Termux (dari F-Droid, bukan Play Store)
-- Python 3.10+
-- Internet
+- Koneksi internet
+- Storage kosong ~200 MB
 
----
+# Install Termux
 
-## Instalasi
+Download dari F-Droid:
 
-### 1. Update Termux
+https://f-droid.org/packages/com.termux/
+
+Jangan install dari Play Store, versinya sudah usang.
+
+# Buka Termux
+
+Tunggu sampai muncul prompt:
+
+    ~ $
+
+# Update & Upgrade
 
     pkg update && pkg upgrade -y
 
-### 2. Install Python & Git
+Kalau muncul pertanyaan, ketik `y` lalu Enter.
 
-    pkg install python git -y
+# Izinkan Akses Storage
 
-### 3. Install Library
+    termux-setup-storage
+
+Akan muncul popup "Allow Termux to access files?" - tap Allow.
+
+# Install Python
+
+    pkg install python -y
+
+Cek:
+
+    python --version
+
+# Install Git
+
+    pkg install git -y
+
+Cek:
+
+    git --version
+
+# Install Library Python
 
     pip install requests
 
----
+Cek:
 
-## Cara Menjalankan
+    python -c "import requests; print('OK')"
 
-### 1. Clone Repo
+# Install nano
+
+    pkg install nano -y
+
+# Cara Clone Repo
 
     cd ~
     git clone https://github.com/ejaaa18/ejaotp.git
     cd ejaotp
 
-### 2. Jalankan Script
+# Cara Menjalankan
 
     python run.py
 
-### 3. Login
+# Login
 
-Masukkan username & password yang sudah diberikan admin.
+Masukkan username & password yang diberikan admin.
 
     +==========================================+
     |            LOGIN DULU                    |
@@ -53,30 +84,58 @@ Masukkan username & password yang sudah diberikan admin.
 
     [OK] Login berhasil! Selamat datang, budi
 
-### 4. Masukkan Nomor
+# Masukkan Nomor
 
     Masukan Nomor : 08xxxxxxxxxx
 
 Script akan mengirim OTP otomatis.
 
----
+# Cara Update Script
 
-## Catatan
+    cd ~/ejaotp
+    git pull
+    python run.py
 
-- Script berjalan **loop tanpa batas**
-- Tekan **CTRL+C** untuk berhenti
+# Cara Berhenti
 
----
+Tekan CTRL + C.
 
-## Pertanyaan
+# Troubleshooting
+
+Kalau muncul "command not found: python":
+
+    pkg install python -y
+
+Kalau muncul "ModuleNotFoundError: No module named 'requests'":
+
+    pip install requests
+
+Kalau muncul "Permission denied":
+
+    termux-setup-storage
+
+Kalau muncul "fatal: could not read Username":
+
+    cd ~
+    rm -rf ejaotp
+    git clone https://github.com/ejaaa18/ejaotp.git
+
+# Catatan
+
+- Script berjalan loop tanpa batas (jeda 60 detik tiap round)
+- Login cuma bisa dari 1 HP (anti-device)
+- Kalau login dari HP lain, akun ter-BAN
+- Jangan hapus folder ejaotp sembarangan
+
+# Pertanyaan
 
 Hubungi admin jika:
+
 - Lupa password
 - Akun ter-BAN
+- Mau ganti device
 - Butuh bantuan
 
----
-
-## Lisensi
+# Lisensi
 
 Private - hanya untuk pengguna terdaftar.
